@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nordic FCR constraint calculator</title>
+<style>
+  :root{
+    --bg:#f6f8f7; --panel:#ffffff; --ink:#16211f; --muted:#69756f;
+    --line:#e2e7e4; --grid:#eaeeeb; --track:#eef1ef;
+    --accent:#0f9d8f; --accent-soft:#d7efec;
+    --power:#3f6f9e; --energy:#d9862b;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.45}
+  .wrap{max-width:1140px;margin:0 auto;padding:32px 22px 64px}
+  header{margin-bottom:24px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 6px}
+  h1{font-size:26px;font-weight:650;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:14px;max-width:72ch;margin:0}
+  .grid{display:grid;grid-template-columns:290px 1fr;gap:22px;align-items:start}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .card h2{font-size:12px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 15px;font-weight:600}
+  .field{margin-bottom:15px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+  .field .in{display:flex;align-items:center;gap:8px}
+  .field input[type=number]{width:100%;font-family:var(--mono);font-size:15px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .field input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .field .unit{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:30px}
+  .derived input{background:#f4f6f5 !important;color:var(--muted)}
+  .tag{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:6px}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;font-family:var(--mono);font-size:12px;padding:8px 6px;border:1px solid var(--line);
+    background:#fff;border-radius:8px;cursor:pointer;color:var(--muted)}
+  .seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4}
+  table{width:100%;border-collapse:collapse;margin-top:2px}
+  thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);text-align:left;padding:0 12px 10px;font-weight:600;border-bottom:1px solid var(--line)}
+  tbody td{padding:16px 14px;border-bottom:1px solid var(--grid);vertical-align:top}
+  tbody td:first-child{padding-left:2px}
+  tbody tr:last-child td{border-bottom:none}
+  .pname{font-weight:600;font-size:13.5px}
+  .pdesc{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .num{font-family:var(--mono);font-size:15px;font-weight:600}
+  .numsub{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+  .bind{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600}
+  .bind.power{background:#e7eef5;color:var(--power)}
+  .bind.energy{background:#f7ecdd;color:var(--energy)}
+  .socwrap{min-width:190px;max-width:280px}
+  .soctrack{position:relative;height:22px;background:var(--track);border-radius:5px;overflow:hidden}
+  .socfill{position:absolute;top:0;bottom:0;background:var(--accent-soft);border-left:2px solid var(--accent);
+    border-right:2px solid var(--accent)}
+  .socmid{position:absolute;top:0;bottom:0;left:50%;width:1px;background:#c8d0cd}
+  .soclbl{display:flex;justify-content:space-between;align-items:flex-start;
+    font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:7px;line-height:1.55}
+  .soclbl .hi{text-align:right}
+  .soclbl b{color:var(--ink);font-size:12.5px}
+  .soclbl .mwh{color:var(--muted);font-size:11px}
+  .warn{color:#b4522f;font-family:var(--mono);font-size:11px;margin-top:5px}
+  .num.dim{color:var(--muted)}
+  .soctrack.bad{background:repeating-linear-gradient(45deg,#f6e2dd,#f6e2dd 6px,#efd0c9 6px,#efd0c9 12px)}
+  .socnote{font-family:var(--mono);font-size:10.5px;margin-top:7px;line-height:1.45}
+  .socnote.bad{color:#b1502e}
+  .socnote.warn{color:#9c6c1c}
+  .statusbad{font-family:var(--mono);font-size:10px;color:#b1502e;font-weight:600;margin-top:6px}
+  .rules{margin-top:22px}
+  .rules h3{font-size:12px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 12px;font-weight:600}
+  .rules dl{margin:0;display:grid;grid-template-columns:1fr;gap:14px}
+  .rules dt{font-weight:600;font-size:13px;margin-bottom:3px}
+  .rules dd{margin:0;font-size:13px;color:#2c3a36;line-height:1.5}
+  .rules code{font-family:var(--mono);font-size:12px;background:#eef1ef;padding:1px 5px;border-radius:4px}
+  .foot{font-size:11.5px;color:var(--muted);margin-top:22px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Gridcog · Nordic reserves · BESS sizing</p>
+    <h1>FCR-N &amp; FCR-D constraint calculator</h1>
+    <p class="sub">Enter a battery's ratings to see how much capacity it can sell into each frequency-containment
+      product, and the state-of-charge band it needs to hold to deliver. Power ceilings follow from the inverter
+      rating and the counter-reserve headroom; the SoC band follows from the energy the product must reserve,
+      set against the usable energy in the pack.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Battery</h2>
+
+      <div class="field">
+        <label for="power">Inverter power</label>
+        <div class="in"><input type="number" id="power" value="1" min="0.1" step="0.1"><span class="unit">MW</span></div>
+      </div>
+
+      <div class="field">
+        <label for="dur">Duration <span class="tag">edit either</span></label>
+        <div class="in"><input type="number" id="dur" value="2" min="0.25" step="0.25"><span class="unit">h</span></div>
+      </div>
+
+      <div class="field derived">
+        <label for="energy">Energy</label>
+        <div class="in"><input type="number" id="energy" value="2" min="0.1" step="0.1"><span class="unit">MWh</span></div>
+        <div class="hint">Power &times; duration = energy. Change any of the three and the other two update to match.</div>
+      </div>
+
+      <div class="field">
+        <label for="win">Usable window</label>
+        <div class="in"><input type="number" id="win" value="100" min="20" max="100" step="1"><span class="unit">%</span></div>
+        <div class="hint">Share of energy declared available for reserve. SoC bands are measured against this rather
+          than nameplate, so lower it to reflect depth-of-discharge limits or degradation.</div>
+      </div>
+
+      <div class="field">
+        <label>FCR-N energy-duration requirement</label>
+        <div class="seg" id="dn">
+          <button data-dn="1" class="on">1.0 h · pan-Nordic</button>
+          <button data-dn="1.25">1.25 h · DK2</button>
+        </div>
+        <div class="hint">FCR-D stays fixed at 20 min (&#8531; h) per direction, so this toggle doesn't affect it.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Sellable capacity &amp; SoC band</h2>
+        <table>
+          <thead>
+            <tr><th style="width:26%">Product</th><th style="width:17%">Max power</th>
+              <th style="width:38%">Usable SoC band</th><th style="width:19%">Binding limit</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="card rules">
+        <h3>How the numbers are worked out</h3>
+        <dl>
+          <dt>Energy-duration requirement</dt>
+          <dd>FCR-N is symmetric and has to sustain full response for <b><span id="r_dn">1</span> h in each
+            direction</b>, so it reserves that much energy at the top and the bottom of the pack. FCR-D only has to
+            sustain <code>20 min</code> (15 min alert plus 5 min) in its delivery direction.</dd>
+
+          <dt>Counter-reserve headroom (Normal State Energy Management)</dt>
+          <dd>A power reservation kept back for SoC restoration. It can't be sold as capacity, but the energy behind
+            it can still be traded intraday. <b>FCR-N reserves 34% of C in both directions</b>
+            (<code>&plusmn;1.34&middot;C</code>), and this stacks on delivery, so <code>C_max = P / 1.34</code>.
+            <b>FCR-D reserves 20% of C in the opposite direction</b> as power only, with no energy behind it, so a
+            single-direction bid is limited by the inverter alone (<code>C_max = P</code>). Bidding up and down at
+            the same time adds the two reservations to <code>1.2&middot;C</code> per direction, giving
+            <code>C_max = P / 1.2</code>.</dd>
+
+          <dt>SoC floor and ceiling</dt>
+          <dd>Set by the energy reservation, <code>duration &times; C</code>, divided by usable energy. FCR-N is
+            two-sided, so the band is squeezed from both ends. FCR-D up needs charge to discharge, so it has a floor
+            and a 100% ceiling; FCR-D down needs room to charge, so it has a ceiling and a 0% floor.</dd>
+
+          <dt>Power vs energy binding</dt>
+          <dd>Maximum sellable power is the lower of the inverter/headroom ceiling and the energy ceiling. A short
+            pack hits the energy limit first: its SoC band pinches shut and sellable capacity falls below the power
+            ceiling. Below the NEM band sits AEM, where the unit is declared unavailable.</dd>
+
+          <dt>Suggested starting SoC</dt>
+          <dd>Around <b>50%</b> for symmetric provision (FCR-N, or FCR-D up + down), around <b>100%</b> for FCR-D up,
+            and around <b>0%</b> for FCR-D down.</dd>
+        </dl>
+      </div>
+
+      <p class="foot">
+        Model constants: FCR-N NEM 34%, FCR-D NEM 20%, FCR-D endurance &#8531; h per direction. Usable energy
+        <code>U = energy &times; window</code>. Figures are indicative for scenario framing and don't guarantee a
+        prequalification outcome; real usable energy also shifts with state of health over the life of the asset.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const kN=1.34, dD=1/3;
+const state={power:1,dur:2,energy:2,win:100,dn:1};
+
+// keep power/duration/energy consistent
+function link(source){
+  const P=parseFloat($('power').value)||0;
+  const D=parseFloat($('dur').value)||0;
+  const E=parseFloat($('energy').value)||0;
+  if(source==='power'||source==='dur'){ // hold duration, recompute energy
+    const e=P*D; $('energy').value=round(e,3); state.power=P; state.dur=D; state.energy=e;
+  } else if(source==='energy'){ // hold power, recompute duration
+    const d=P>0?E/P:0; $('dur').value=round(d,3); state.power=P; state.energy=E; state.dur=d;
+  }
+  state.win=clamp(parseFloat($('win').value)||0,0,100);
+}
+function round(x,n){const f=10**n;return Math.round(x*f)/f;}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+
+function compute(){
+  const P=state.power, win=state.win/100, U=state.energy*win, dN=state.dn;
+
+  function mk(name,desc,cPow,cEn,dur,twoSided,shape,side){
+    const c=Math.min(cPow,cEn), bind=cEn<cPow-1e-9?'energy':'power';
+    const r=dur*c;
+    let floor,ceil;
+    if(shape==='up'){ floor=U>0?r/U*100:100; ceil=100; }
+    else if(shape==='down'){ floor=0; ceil=U>0?100-r/U*100:0; }
+    else { floor=U>0?r/U*100:50; ceil=U>0?100-r/U*100:50; }
+    floor=clamp(floor,0,100); ceil=clamp(ceil,0,100);
+    const bw=ceil-floor;                                  // usable window, percentage points
+    const status = bind==='energy' ? 'infeasible' : (bw<10 ? 'marginal' : 'ok');
+    const uMin=(twoSided?2:1)*dur*cPow;                   // usable MWh needed to reach the power ceiling
+    return {name,desc,c,cPow,r,rside:side,floor,ceil,
+      floorMWh:floor/100*U, ceilMWh:ceil/100*U,
+      bind,bw,status,uMin,uMinNom:win>0?uMin/win:uMin,U};
+  }
+
+  return [
+    mk('FCR-N','symmetric · 49.9–50.1 Hz',        P/kN,   U>0?U/(2*dN):0, dN, true,  'sym',  'each side'),
+    mk('FCR-D up','discharge only · 49.9–49.5 Hz', P,      U>0?U/dD:0,     dD, false, 'up',   'up (charge held)'),
+    mk('FCR-D down','charge only · 50.1–50.5 Hz',  P,      U>0?U/dD:0,     dD, false, 'down', 'down (room held)'),
+    mk('FCR-D up + down','simultaneous, equal · per direction', P/1.2, U>0?U/(2*dD):0, dD, true, 'sym', 'each side')
+  ];
+}
+
+function render(){
+  const tb=$('rows'); tb.innerHTML='';
+  compute().forEach(row=>{
+    const tr=document.createElement('tr');
+    const bad = row.status==='infeasible';
+    const warn = row.status==='marginal';
+    const bandLeft=clamp(row.floor,0,100), bandW=clamp(row.ceil-row.floor,0,100);
+    let note='';
+    if(bad){
+      note=`<div class="socnote bad">Not operable: the energy reserve fills the pack, leaving no usable SoC window.
+            Needs more than ${row.uMin.toFixed(3)} MWh usable${state.win<100?` (${row.uMinNom.toFixed(3)} MWh nameplate)`:''}
+            to reach its ${row.cPow.toFixed(3)} MW power ceiling; you have ${row.U.toFixed(3)} MWh usable.</div>`;
+    } else if(warn){
+      note=`<div class="socnote warn">Narrow window: only ${row.bw.toFixed(1)} points of usable SoC are free to move.</div>`;
+    }
+    tr.innerHTML=`
+      <td><div class="pname">${row.name}</div><div class="pdesc">${row.desc}</div></td>
+      <td><div class="num${bad?' dim':''}">${row.c.toFixed(3)}<span style="font-size:11px;color:var(--muted)"> MW</span></div>
+          <div class="numsub">${bad?'size-limited ceiling':'reserve '+row.r.toFixed(3)+' MWh '+row.rside}</div></td>
+      <td><div class="socwrap">
+            <div class="soctrack${bad?' bad':''}">
+              <div class="socmid"></div>
+              ${bad?'':`<div class="socfill" style="left:${bandLeft}%;width:${bandW}%"></div>`}
+            </div>
+            <div class="soclbl">
+              <span class="lo">floor<br><b>${row.floor.toFixed(1)}%</b><br><span class="mwh">${row.floorMWh.toFixed(3)} MWh</span></span>
+              <span class="hi">ceiling<br><b>${row.ceil.toFixed(1)}%</b><br><span class="mwh">${row.ceilMWh.toFixed(3)} MWh</span></span>
+            </div>
+            ${note}
+          </div></td>
+      <td><span class="bind ${row.bind}">${row.bind}</span>${bad?'<div class="statusbad">infeasible</div>':''}</td>`;
+    tb.appendChild(tr);
+  });
+  $('r_dn').textContent=state.dn;
+}
+
+['power','dur'].forEach(id=>$(id).addEventListener('input',()=>{link(id);render();}));
+$('energy').addEventListener('input',()=>{link('energy');render();});
+$('win').addEventListener('input',()=>{state.win=clamp(parseFloat($('win').value)||0,0,100);render();});
+document.querySelectorAll('#dn button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#dn button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.dn=parseFloat(b.dataset.dn); render();
+}));
+
+link('power'); render();
+</script>
+</body>
+</html>
