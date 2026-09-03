@@ -1,36 +1,33 @@
 # Nordic FCR constraint calculator
 
-A single-page calculator for sizing a battery (BESS) against the Nordic frequency-containment reserve products — **FCR-N** and **FCR-D**. Enter the battery's ratings and it shows how much capacity you can realistically sell into each product, and the state-of-charge band the unit needs to hold to deliver.
+A single-page tool for sizing a battery against the Nordic frequency-containment reserve products, FCR-N and FCR-D. Put in the battery's ratings and it works out how much capacity you can actually sell into each product, plus the state-of-charge band the unit has to stay within to deliver.
 
-**▶️ Open the calculator:** https://joshuaelliott11.github.io/nordic-fcr-calculator/
+Live version: https://joshuaelliott11.github.io/nordic-fcr-calculator/
 
-No install, no login — it runs entirely in the browser.
+It runs entirely in the browser, so there's nothing to install and no login.
 
-## What it tells you
+## What it shows
 
-For each product (FCR-N, FCR-D up, FCR-D down, and FCR-D up + down) the table gives:
+The table covers four cases: FCR-N, FCR-D up, FCR-D down, and FCR-D up and down together. For each one you get three things:
 
-- **Max power** — the largest capacity you can bid, after the inverter rating and the counter-reserve headroom are taken out.
-- **Usable SoC band** — the floor and ceiling the battery must sit between to guarantee delivery, shown in both % and MWh.
-- **Binding limit** — whether the bid is capped by *power* (the inverter/headroom) or by *energy* (a short pack that runs out before the endurance window is met).
+- Max power, the largest capacity you can bid once the inverter rating and the counter-reserve headroom have been taken out.
+- Usable SoC band, the floor and ceiling the battery needs to stay between, given in both percent and MWh.
+- Binding limit, which tells you whether the bid is capped by power (the inverter and headroom) or by energy. The energy case is what happens when a short pack runs out before it meets the endurance window.
 
-Short packs get flagged when the energy reserve fills the pack and leaves no usable SoC window.
+If the energy reserve fills the pack and leaves no room to move, the calculator flags that case as infeasible.
 
-## How to use it
+## Using it
 
-1. Enter **inverter power** and **duration** (or type the **energy** directly — the three stay linked).
-2. Set the **usable window** to reflect depth-of-discharge limits or degradation, if you want SoC bands measured against real usable energy rather than nameplate.
-3. Pick the **FCR-N energy-duration requirement**: 1.0 h pan-Nordic, or 1.25 h for DK2.
-4. Read the results off the table. The "How the numbers are worked out" panel below explains the rules behind each figure.
+Enter the inverter power and duration, or type the energy directly, since the three values stay linked. If you want the SoC bands measured against real usable energy rather than nameplate, drop the usable window to reflect depth-of-discharge limits or degradation. Then pick the FCR-N energy-duration requirement, either 1.0 h for the pan-Nordic case or 1.25 h for DK2.
 
-## Caveats
+The results update in the table as you type. The panel underneath, "How the numbers are worked out", sets out the rules behind each figure if you want to check the working.
 
-Figures are indicative, for scenario framing — they don't guarantee a prequalification outcome, and real usable energy shifts with state of health over the life of the asset. Model constants: FCR-N NEM 34%, FCR-D NEM 20%, FCR-D endurance ⅓ h per direction.
+## A few caveats
+
+The figures are indicative and meant for scenario framing. They don't guarantee a prequalification outcome, and real usable energy drifts with state of health over the life of the asset. The model assumes FCR-N NEM of 34%, FCR-D NEM of 20%, and FCR-D endurance of a third of an hour per direction.
 
 ## Editing
 
-The whole thing is one file, [`index.html`](index.html). GitHub Pages deploys from `main` / root, so any change pushed to `main` republishes automatically.
+Everything lives in one file, index.html. Pages deploys from the main branch, so anything you push there goes live on its own.
 
----
-
-*Built at Gridcog.*
+Built at Gridcog.
