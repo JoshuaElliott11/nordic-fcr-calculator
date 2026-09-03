@@ -10,9 +10,9 @@ It runs entirely in the browser, so there's nothing to install and no login.
 
 The table covers four cases: FCR-N, FCR-D up, FCR-D down, and FCR-D up and down together. For each one you get three things:
 
-- **Max power**, the largest capacity you can bid once the inverter rating and the counter-reserve headroom have been taken out.
-- **Usable SoC band**, the floor and ceiling the battery needs to stay between, given in both percent and MWh.
-- **Binding limit**, which tells you whether the bid is capped by power (the inverter and headroom) or by energy. The energy case is what happens when a short pack runs out before it meets the endurance window.
+- **Max power:** the largest capacity you can bid once the inverter rating and the counter-reserve headroom have been taken out.
+- **Usable SoC band:** the floor and ceiling the battery needs to stay between, given in both percent and MWh.
+- **Binding limit:** which tells you whether the bid is capped by power (the inverter and headroom) or by energy. The energy case is what happens when a short pack runs out before it meets the endurance window.
 
 If the energy reserve fills the pack and leaves no room to move, the calculator flags that case as **infeasible**.
 
